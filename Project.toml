@@ -1,0 +1,18 @@
+name = "VideoPlayer"
+uuid = "4672274e-a235-11e9-2477-73f41e8acea1"
+authors = ["Anshul Singhvi", "Yakir Gagnon"]
+version = "0.1.0"
+
+[deps]
+FFMPEG = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
