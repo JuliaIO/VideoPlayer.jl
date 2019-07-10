@@ -4,7 +4,7 @@ module VideoPlayer
 
     abstract type AbstractVideoBackend end
 
-    videobackend() = MakieBackend
+    include(joinpath(@__DIR__, "..", "deps", "includes.jl"))
 
     play(args...; kwargs...) = play(videobackend(), args...; kwargs...)
 
