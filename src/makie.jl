@@ -188,6 +188,8 @@ task = @async begin
     end
 end
 
+t = Theme(raw = true, camera = campixel!, backgroundcolor = :black)
+
 # bind(buff, task)
 
 flipx=false
@@ -208,7 +210,9 @@ makieimg = Makie.image!(scene, 1:h, 1:w, img, show_axis = false, scale_plot = fa
 Makie.rotate!(scene, -0.5π)
 Makie.scale!(scene, flipx ? -1 : 1,  flipy ? -1 : 1)
 
-next_button = button(">", raw=true, camera=campixel!)
+next_button = button(">", t...)
+
+timeprinter(x) = return string(Time(0) + Microsecond(round(Int, 1000000 * i * 1/f.framerate)))
 
 function readshow(i = nothing)
     makieimg[3] = take!(buff)
@@ -218,7 +222,7 @@ stepped = lift(readshow, next_button[end][:clicks])
 
 nframes = round(Int, VideoIO.get_duration(avf.io)/Microsecond(Second(1))*f.framerate)
 
-slider_h = slider(1:nframes, raw = true, camera = campixel!, start = 2)
+slider_h = slider(1:nframes, start = 2, valueprinter = timeprinter, t...)
 
 old_slider_pos = Node(1)
 
@@ -237,7 +241,7 @@ end
 
 hbox(vbox(slider_h, next_button), scene)
 
-play_button = button("▷", raw=true, camera=campixel!)
+play_button = button("▷", t, strokecolor = :white)
 
 function play(c)
     println("play: ", c)
@@ -252,8 +256,8 @@ end
 
 # TODO use Observables.async_latest here!!  Button will do its thing well then
 
-played = lift(play, next_button[end][:clicks])
+played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
-hbox(vbox(play_button, next_button), scene)
+hbox(vbox(play_button, next_button, slider_h), scene)
 
 videobackend() = MakieBackend
