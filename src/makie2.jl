@@ -12,6 +12,8 @@ using Makie, Dates, Observables, VideoIO
 avf = VideoIO.testvideo("annie_oakley")
 f = VideoIO.openvideo(avf)
 
+f = VideoIO.openvideo("test.mp4")
+
 # Determine the width and height of the Scene
 pixelaspectratio = VideoIO.aspect_ratio(f)
 h = f.height
@@ -59,10 +61,10 @@ time[] = 12.0
 
 # print in minutes
 function print_time(i)
-    return string(Time(0) + Microsecond(round(Int, 1000000 * i)))
+    return string(Time(0) + Microsecond(round(Int, 1e6*gettime(f))))#Microsecond(round(Int, 1000000 * i)))
 end
 # create a slider to control time (a time machine⁉)
-timeslider = slider!(rsc(), 0:1/f.framerate:24, valueprinter = print_time,
+timeslider = slider!(rsc(), 0:1/f.framerate:10, valueprinter = print_time,
             textcolor = :white)
 # When the value of the slider is changed, change the time.
 lift(timeslider[end][:value]) do value
@@ -70,17 +72,17 @@ lift(timeslider[end][:value]) do value
 end
 
 # Go back and forward by 1 frame each
-backbutton = button!(rsc(), "<", textcolor = :white)
+# backbutton = button!(rsc(), "<", textcolor = :white)
 fwdbutton  = button!(rsc(), ">", textcolor = :white)
 # tie the slider value to the buttons as well
-lift(backbutton[end][:clicks]) do clicks
-    timeslider[end][:value][] -= 1/f.framerate
-end
+# lift(backbutton[end][:clicks]) do clicks
+    # timeslider[end][:value][] -= 1/f.framerate
+# end
 lift(fwdbutton[end][:clicks]) do clicks
     timeslider[end][:value][] += 1/f.framerate
 end
 
-hbox(vbox(backbutton, timeslider, fwdbutton), scene)
+hbox(vbox(timeslider, fwdbutton), scene)
 
 # Lo and behold!  A minimal video "player"!
 
