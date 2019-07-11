@@ -1,35 +1,65 @@
-#!/usr/bin/env julia
-
-# # setup
-# import Pkg
-# Pkg.pkg"add Makie#master AbstractPlotting#master GLMakie#master
-#         Observables#master VideoIO"
-import Pkg
-Pkg.activate(".")
 using Makie, Dates, Observables, VideoIO
 
-# load the video
-avf = VideoIO.testvideo("annie_oakley")
-f = VideoIO.openvideo(avf)
+using Makie, VideoIO
+f = VideoIO.openvideo(testvideo)
+# seek(f, 5.0) # skip the beginning
+img = Node(read(f))
+buff = Channel{typeof(img[])}(100) # have a buffer with 500 frames
+task = @async begin # this is the task that fills that buffer
+    while !eof(f)
+        put!(buff, read(f))
+    end
+end
+pixelaspectratio = VideoIO.aspect_ratio(f)
+h = f.height
+w = round(typeof(h), f.width * pixelaspectratio)
+scene = Scene(resolution = (w, h), backgroundcolor = :black)
+Makie.image!(scene, img)
+# Rotate and scale the scene
+Makie.rotate!(scene, -0.5π)
+# Update all aspects of the Scene.
+update_limits!(scene)
+update_cam!(scene)
+update!(scene)
+slider_h = slider(1:250, raw = true, camera = campixel!, start = 2)
+old_slider_pos = Node(1)
+lift(slider_h[end][:value]) do frame
+    while old_slider_pos[] ≤ frame
+        img[] = take!(buff)
+        old_slider_pos[] += 1
+    end
+end
+hbox(slider_h, scene)
 
-f = VideoIO.openvideo("test.mp4")
-# seek(f, 5.0)
+
+
+
+struct Frame{V, T}
+    img::V
+    time::T
+end
+
+# load the video
+include("testvideo.jl")
+testvideo = joinpath(tempdir(), "test.mp4")
+if !isfile(testvideo)
+    createtestvideo(testvideo)
+end
+f = VideoIO.openvideo(testvideo)
 
 # Determine the width and height of the Scene
 pixelaspectratio = VideoIO.aspect_ratio(f)
 h = f.height
 w = round(typeof(h), f.width * pixelaspectratio)
 
-# create a buffer of 15 seconds
-nframesbuffer = round(Int, 15f.framerate)
 img = read(f)
-buff = Channel{typeof(img)}(nframesbuffer)
-# fill up the buffer with the next 15 seconds worth of frames
-task = @async begin
-    while !eof(f)
-        put!(buff, read(f))
-    end
+t = gettime
+movie = Vector{Frame}()
+push!(movie, img)
+while !eof(f)
+    push!(movie, read(f))
 end
+
 
 # To flip or not to flip?
 flipx = false
@@ -41,7 +71,10 @@ rsc() = Scene(;camera = campixel!, raw = true, backgroundcolor = :black)
 scene = Scene(resolution = (w, h), backgroundcolor = :black)
 
 # define some Observables
-buf = Node(img)
+frame = Node(1)
+buf = lift(frame) do i
+    movie[i]
+end
 
 # plot the image.  We're plotting an Observable, so on its update it will update
 # the image as well.
@@ -61,9 +94,10 @@ update!(scene)
 # display it
 scene
 
+fwdbutton  = button!(rsc(), ">", textcolor = :white)
 next_button = button(">", raw=true, camera=campixel!)
 function step(_)
-    buf[] = take!(buff)
+    frame[] += 1
 end
 stepped = lift(step, next_button[end][:clicks])
 
@@ -73,10 +107,14 @@ slider_h = slider(1:nframes, raw = true, camera = campixel!, start = 2)
 
 old_slider_pos = Node(1)
 
-lift(slider_h[end][:value]) do frame
-    while old_slider_pos[] ≤ frame
-        img[] = take!(buff)
-        old_slider_pos[] += 1
+lift(slider_h[end][:value]) do new_slider_position
+    if old_slider_pos[] ≤ new_slider_position
+        for i in old_slider_pos[]:new_slider_position
+            buf[] = take!(buff)
+        end
+        old_slider_pos[] = new_slider_position
+    else
+        println("no back")
     end
 end
 hbox(vbox(slider_h, next_button), scene)
@@ -184,8 +222,6 @@ task = @async begin
     end
 end
 
-t = Theme(raw = true, camera = campixel!, backgroundcolor = :black)
-
 # bind(buff, task)
 
 flipx=false
@@ -206,9 +242,7 @@ makieimg = Makie.image!(scene, 1:h, 1:w, img, show_axis = false, scale_plot = fa
 Makie.rotate!(scene, -0.5π)
 Makie.scale!(scene, flipx ? -1 : 1,  flipy ? -1 : 1)
 
-next_button = button(">", t...)
-
-timeprinter(x) = return string(Time(0) + Microsecond(round(Int, 1000000 * i * 1/f.framerate)))
+next_button = button(">", raw=true, camera=campixel!)
 
 function readshow(i = nothing)
     makieimg[3] = take!(buff)
@@ -218,7 +252,7 @@ stepped = lift(readshow, next_button[end][:clicks])
 
 nframes = round(Int, VideoIO.get_duration(avf.io)/Microsecond(Second(1))*f.framerate)
 
-slider_h = slider(1:nframes, start = 2, valueprinter = timeprinter, t...)
+slider_h = slider(1:nframes, raw = true, camera = campixel!, start = 2)
 
 old_slider_pos = Node(1)
 
@@ -237,7 +271,7 @@ end
 
 hbox(vbox(slider_h, next_button), scene)
 
-play_button = button("▷", t, strokecolor = :white)
+play_button = button("▷", raw=true, camera=campixel!)
 
 function play(c)
     println("play: ", c)
@@ -252,8 +286,8 @@ end
 
 # TODO use Observables.async_latest here!!  Button will do its thing well then
 
-played = Observables.async_latest(play, play_bubtton[end][:clicks])
+played = lift(play, next_button[end][:clicks])
 
-hbox(vbox(play_button, next_button, slider_h), scene)
+hbox(vbox(play_button, next_button), scene)
 
 videobackend() = MakieBackend
