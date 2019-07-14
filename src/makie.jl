@@ -26,7 +26,7 @@ task = @async begin
     while !eof(f)
         t = Time(0) + Millisecond(round(Int, 1000gettime(f)))
         put!(buff, Pair(t, read(f)))
-        yield() # needed 
+        yield() # needed
     end
 end
 
@@ -34,8 +34,8 @@ end
 pixelaspectratio = VideoIO.aspect_ratio(f)
 h = f.height
 w = round(typeof(h), f.width * pixelaspectratio)
-rsc() = Scene(;camera = campixel!, raw = true, backgroundcolor = :black)
-scene = Scene(resolution = (w, h), backgroundcolor = :black)
+AbstractPlotting.set_theme!(backgroundcolor = :black)
+scene = Scene(resolution = (w, h))
 Makie.image!(scene, 1:h, 1:w, img, show_axis = false, scale_plot = false)
 Makie.rotate!(scene, -0.5π)
 update_limits!(scene)
@@ -60,14 +60,14 @@ lift(slider_h[end][:value]) do frame
 end
 
 # this is for a separate display of the time stamp, due to the fact that we can not calculate with the time stamp is from the frame number (which is what the slider has)
-timestamp_h = text!(rsc(), lift(string, timestamp), color = :white)
+timestamp_h = text(lift(string, timestamp), color = :white)
 
 # I have to have a forward button becuase apparently the stuff in the lift gets evaluated, so to have the movie start in frame #1 I need to go forward once and the backwards...
-fwdbutton = button!(rsc(), ">", textcolor = :white)
+fwdbutton = button(">", textcolor = :white)
 lift(fwdbutton[end][:clicks]) do _
     # if currentframe[] < nframes # check we are not in the last frame
     timestamp[], img[] = take!(buff)
-    slider_h[end][:value][] += 1 
+    slider_h[end][:value][] += 1
         # so now the movie is in frame #2
     # end
     0
@@ -88,4 +88,3 @@ hbox(vbox(slider_h, fwdbutton, timestamp_h), scene)
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
 # hbox(vbox(play_button, next_button, slider_h), scene)
-
