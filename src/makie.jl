@@ -3,7 +3,6 @@ using Makie, VideoIO, Dates, Observables
 include("testvideo.jl")
 
 # create the test video if it doesn't exist
-testvideo = joinpath(tempdir(), "test.mp4")
 if !isfile(testvideo)
     createtestvideo(testvideo)
 end
@@ -49,7 +48,8 @@ old_slider_pos = Observable(1)
 nframes = round(Int, VideoIO.get_duration(f.avin.io)*f.framerate)
 
 # the slider, updating currentframe and getting its string from timestamps
-slider_h = slider!(rsc(), 1:nframes, start = 1, valueprinter = i -> "no, this will be wrong", textcolor = :white)
+slider_h = slider(1:nframes, start = 1, valueprinter = i -> "no, this will be wrong", textcolor = :white)
+
 lift(slider_h[end][:value]) do frame
     while old_slider_pos[] ≤ frame
         timestamp[], img[] = take!(buff)
@@ -60,7 +60,7 @@ lift(slider_h[end][:value]) do frame
 end
 
 # this is for a separate display of the time stamp, due to the fact that we can not calculate with the time stamp is from the frame number (which is what the slider has)
-timestamp_h = text(lift(string, timestamp), color = :white)
+timestamp_h = text(lift(string, timestamp), color = :white, raw = true, camera = campixel!)
 
 # I have to have a forward button becuase apparently the stuff in the lift gets evaluated, so to have the movie start in frame #1 I need to go forward once and the backwards...
 fwdbutton = button(">", textcolor = :white)
