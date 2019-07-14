@@ -1,13 +1,13 @@
 module VideoPlayer
 
-    using VideoIO
+using VideoIO
 
-    abstract type AbstractVideoBackend end
+abstract type AbstractVideoBackend end
 
-    include(joinpath(@__DIR__, "..", "deps", "includes.jl"))
+include(joinpath(@__DIR__, "..", "deps", "includes.jl"))
 
-    play(args...; kwargs...) = play(videobackend(), args...; kwargs...)
+play(args...; kwargs...) = play(videobackend(), args...; kwargs...)
 
-    export videobackend, play
+export videobackend, play
 
 end # module

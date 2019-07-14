@@ -85,4 +85,7 @@ end=#
 # done!
 hbox(vbox(slider_h, fwdbutton, timestamp_h), scene)
 
+# played = Observables.async_latest(play, play_bubtton[end][:clicks])
+
+# hbox(vbox(play_button, next_button, slider_h), scene)
 
