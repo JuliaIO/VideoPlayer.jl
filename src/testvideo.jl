@@ -9,8 +9,8 @@ function createtestvideo(filename; w = 200, h = 100, fps = 25, totalseconds = 10
         Frame #: $fn
         Time: $t"""
     end
-    scene = Scene(resolution = (w, h), backgroundcolor = :black)
-    text!(scene, msg, color = :white)
+    scene = Scene(resolution = (w, h))#, show_axis=false, backgroundcolor = :black)
+    text!(scene, msg)#, color = :white)
     # scene
     record(scene, filename, 1:totalframes, framerate = fps) do i
         framenumber[] = i
