@@ -10,12 +10,14 @@ if !isfile(testvideo)
 end
 
 
-# avf = VideoIO.testvideo("annie_oakley")
-# testvideo = avf.io
+avf = VideoIO.testvideo("annie_oakley")
+testvideo = avf.io
 # f = VideoIO.openvideo(avf)
 
 # open the video
 f = VideoIO.openvideo(testvideo)
+
+f2 = VideoIO.openvideo(testvideo)
 
 duration = VideoIO.get_duration(f.avin.io)
 
@@ -37,7 +39,7 @@ correctcurrent = lift(img) do _
     gettime(f)
 end
 timestamp = lift(correctcurrent) do cc
-    Time(0) + Millisecond(round(Int, 1000cc))
+    Time(0,0,0,1) + Millisecond(round(Int, 1000cc))
 end
 
 # all the stuff needed for display
@@ -82,21 +84,18 @@ lift(fwdbutton[end][:clicks]) do _
 end
 bckbutton = button!(rsc(), "<", textcolor = :white)
 lift(bckbutton[end][:clicks]) do _
-    #=if correctcurrent[] > 0
-        @info "got in"
-        n = 10
-        seekstart(f)
-        # seek(f, max(correctcurrent[] - n/f.framerate, 0))
-        seek(f, max(correctcurrent[] - 1, 0))
-        lastpair = Pair(correctcurrent[], img[])
-        while gettime(f) < correctcurrent[]
-            @info "stepping" first(lastpair)
-            lastpair = Pair(gettime(f), read(f))
-        end
-        correctcurrent[], img[] = lastpair
-        @info "done"
-    end=#
-    nothing
+    t2 = correctcurrent[]
+    seek(f, max(t2 - 1, 0.0))
+    read(f)
+    t0 = 0.0
+    t1 = 0.0
+    while t1 < t2
+        t0 = gettime(f)
+        read(f)
+        t1 = gettime(f)
+    end
+    current[] = t0
+    img[] = read(f)
 end
 
 # done!
