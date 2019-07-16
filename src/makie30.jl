@@ -8,9 +8,8 @@ if !isfile(testvideo)
     createtestvideo(testvideo)
 end
 
-
 # open the video
-f = VideoIO.openvideo(VideoIO.testvideo("annie_oakley"))
+f = VideoIO.openvideo(testvideo)
 
 # read one image to get its type <-- this might be unecessary since we might know that in advance for all videos
 img = Observable(read(f))
@@ -19,8 +18,8 @@ img = Observable(read(f))
 nframes = 2round(Int, VideoIO.get_duration(f.avin.io)/Microsecond(Second(1))*f.framerate)
 
 # prepare the holders for the frames and the time-stamps
-frames = Vector{typeof(img[])}()#Vector{tyepof(img[])}(undef, nframes)
-timestamps = String[]#Vector{String}(undef, nframes)
+frames = Vector{typeof(img[])}() # Vector{tyepof(img[])}(undef, nframes)
+timestamps = String[] # Vector{String}(undef, nframes)
 sizehint!(frames, nframes)
 sizehint!(timestamps, nframes)
 
@@ -37,13 +36,16 @@ end
 
 # get the actual number of frames (needed actually later)
 nframes = length(timestamps)
+sizehint!(frames, nframes)
 
 # all the stuff needed for display
 pixelaspectratio = VideoIO.aspect_ratio(f)
 h = f.height
 w = round(typeof(h), f.width * pixelaspectratio)
-rsc() = Scene(;camera = campixel!, raw = true, backgroundcolor = :black)
-scene = Scene(resolution = (w, h), backgroundcolor = :black)
+
+AbstractPlotting.set_theme!(Attributes(backgroundcolor = :black))
+
+scene = Scene(resolution = (w, h))
 Makie.image!(scene, 1:h, 1:w, img, show_axis = false, scale_plot = false)
 Makie.rotate!(scene, -0.5π)
 update_limits!(scene)

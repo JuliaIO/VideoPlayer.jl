@@ -1,4 +1,4 @@
-function createtestvideo(filename; w = 200, h = 100, fps = 25, totalseconds = 10)
+function createtestvideo(filename; w = 300, h = 300, fps = 25, totalseconds = 10)
     totalframes = fps*totalseconds
     Δt = Millisecond(Second(1))/fps
     framenumber = Observable(1)
@@ -10,7 +10,7 @@ function createtestvideo(filename; w = 200, h = 100, fps = 25, totalseconds = 10
         Time: $t"""
     end
     scene = Scene(resolution = (w, h), backgroundcolor = :black)
-    text!(scene, msg, color = :white)
+    text!(scene, msg, color = :black)
     # scene
     record(scene, filename, 1:totalframes, framerate = fps) do i
         framenumber[] = i

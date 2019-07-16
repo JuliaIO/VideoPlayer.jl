@@ -8,11 +8,7 @@ import Pkg
 Pkg.activate(".")
 using Makie, Dates, Observables, VideoIO
 
-# set a global theme
-
 # load the video
-avf = VideoIO.testvideo("annie_oakley")
-f = VideoIO.openvideo(avf)
 
 f = VideoIO.openvideo("test.mp4")
 
@@ -47,11 +43,12 @@ update_limits!(scene)
 update_cam!(scene)
 update!(scene)
 
+subbuf = buf[]
 # when time is updated, lazy-load the video.
 lift(time) do t
     seek(f, t)
-    read!(f, buf[])
-    buf[] = buf[]
+    read!(f, subbuf)
+    buf[] = subbuf
 end
 # update the scene to make sure
 update!(scene)
@@ -59,11 +56,11 @@ update!(scene)
 scene
 
 # set the time to some value - check all this works
-time[] = 12.0
+time[] = 1.0
 
 # print in minutes
 function print_time(i)
-    return string(Time(0) + Microsecond(round(Int, 1e6*gettime(f))))#Microsecond(round(Int, 1000000 * i)))
+    return string(Time(0) + Microsecond(round(Int, 1e6*i)))#Microsecond(round(Int, 1000000 * i)))
 end
 # create a slider to control time (a time machine⁉)
 timeslider = slider!(rsc(), 0:1/f.framerate:10, valueprinter = print_time,
