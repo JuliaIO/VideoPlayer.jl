@@ -10,8 +10,8 @@ if !isfile(testvideo)
 end
 
 
-avf = VideoIO.testvideo("annie_oakley")
-testvideo = avf.io
+# avf = VideoIO.testvideo("annie_oakley")
+# testvideo = avf.io
 # f = VideoIO.openvideo(avf)
 
 # open the video
@@ -24,7 +24,7 @@ seekstart(f)
 
 img = Observable(_img)
 current = Observable(0.0)
-correctcurrent = lift(current) do t
+on(current) do t
     try
         seek(f, t)
     catch ex
@@ -32,9 +32,10 @@ correctcurrent = lift(current) do t
             throw(ex)
         end
     end
+end
+correctcurrent = lift(img) do _
     gettime(f)
 end
-
 timestamp = lift(correctcurrent) do cc
     Time(0) + Millisecond(round(Int, 1000cc))
 end
@@ -73,16 +74,15 @@ lift(fwdbutton[end][:clicks]) do _
     if !eof(f)
         img[] = read(f)
     end
-    correctcurrent[] = gettime(f)
-    if correctcurrent[] - slider_h[end][:value][] > step(slidersteps)/2
+    #=if correctcurrent[] - slider_h[end][:value][] > step(slidersteps)/2
         @info "do"
         slider_h[end][:value][] += step(slidersteps) # this doesn't work
-    end
+    end=#
     nothing
 end
 bckbutton = button!(rsc(), "<", textcolor = :white)
 lift(bckbutton[end][:clicks]) do _
-    if correctcurrent[] > 0
+    #=if correctcurrent[] > 0
         @info "got in"
         n = 10
         seekstart(f)
@@ -95,7 +95,7 @@ lift(bckbutton[end][:clicks]) do _
         end
         correctcurrent[], img[] = lastpair
         @info "done"
-    end
+    end=#
     nothing
 end
 
