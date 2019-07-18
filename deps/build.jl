@@ -11,6 +11,9 @@ MAKIE = try
             false
         end
 
+VLC   && @info "VLC backend is available"
+MAKIE && @info "Makie backend is available"
+
 open(joinpath(@__DIR__, "includes.jl"), "w") do file
 
     VLC && println(file, "include(\"vlc.jl\")")
