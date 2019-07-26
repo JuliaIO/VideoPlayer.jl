@@ -119,7 +119,6 @@ kb = on(sc.events.keyboardbuttons) do kb
 end
 
 lastmpos = Node(Point2f0(0e0, 0e0))
-# Observables.off(lastmpos, scene.events.mousebuttons)
 
 mb = on(scene.events.mousebuttons) do mb
     if ispressed(scene, Mouse.left)
@@ -127,9 +126,9 @@ mb = on(scene.events.mousebuttons) do mb
     end
 end
 
+return sc, lastmpos
 
 
-sc
 
 # Observables.off(scene.events.mousebuttons, mb)
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
