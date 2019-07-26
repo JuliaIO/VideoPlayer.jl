@@ -1,6 +1,10 @@
+# setup
+# using Pkg
+# Pkg.pkg"add Makie#master AbstractPlotting#master GLMakie#master VideoIO#master Observables DataStructures"
+
 using Makie, VideoIO, Dates, Observables, DataStructures
 
-include("testvideo.jl")
+include(joinpath(@__DIR__, "testvideo.jl"))
 
 testvideo = joinpath(tempdir(), "test.mp4")
 
