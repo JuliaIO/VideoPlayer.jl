@@ -6,17 +6,18 @@ using Makie, VideoIO, Dates, Observables, DataStructures
 
 include(joinpath(@__DIR__, "testvideo.jl"))
 
-testvideo = joinpath(tempdir(), "test.mp4")
-
-# create the test video if it doesn't exist
-if !isfile(testvideo)
-    createtestvideo(testvideo)
-end
+# testvideo = joinpath(tempdir(), "test.mp4")
+#
+# # create the test video if it doesn't exist
+# if !isfile(testvideo)
+#     createtestvideo(testvideo)
+# end
 
 
 avf = VideoIO.testvideo("annie_oakley")
 testvideo = avf.io
 # f = VideoIO.openvideo(avf)
+_correctimg(img) = rotr90(img)
 
 # open the video
 f = VideoIO.openvideo(testvideo)
@@ -25,7 +26,7 @@ f2 = VideoIO.openvideo(testvideo)
 
 duration = VideoIO.get_duration(f.avin.io)
 
-_img = read(f)
+_img = _correctimg(read(f))
 seekstart(f)
 
 img = Observable(_img)
@@ -45,7 +46,6 @@ end
 timestamp = lift(correctcurrent) do cc
     Time(0,0,0,1) + Millisecond(round(Int, 1000cc))
 end
-
 # all the stuff needed for display
 rsc() = Scene(;camera = campixel!, raw = true, backgroundcolor = :black)
 pixelaspectratio = VideoIO.aspect_ratio(f)
@@ -53,20 +53,20 @@ h = f.height
 w = round(typeof(h), f.width * pixelaspectratio)
 AbstractPlotting.set_theme!(backgroundcolor = :black)
 scene = Scene(resolution = (w, h))
-Makie.image!(scene, 1:h, 1:w, img, show_axis = false, scale_plot = false)
-Makie.rotate!(scene, -0.5π)
+Makie.image!(scene, 1:w, 1:h, img, show_axis = false, scale_plot = false)
+# Makie.rotate!(scene, -0.5π)
 update_limits!(scene)
 update_cam!(scene)
 Makie.update!(scene)
 
 # the slider, updating currentframe and getting its string from timestamps
 slidersteps = range(0, duration, length = 100)
-slider_h = slider!(rsc(), slidersteps, start = 0, valueprinter = i -> "no, this will be wrong", textcolor = :white)
+slider_h = slider!(rsc(), slidersteps, start = 0, valueprinter = _ -> "lolno", textcolor = :white)
 
 lift(slider_h[end][:value]) do t
     current[] = t
     if !eof(f)
-        img[] = read(f)
+        img[] = _correctimg(read(f))
     end
     nothing
 end
@@ -78,7 +78,7 @@ timestamp_h = text!(rsc(), lift(string, timestamp), color = :white)
 fwdbutton = button!(rsc(), ">", textcolor = :white)
 lift(fwdbutton[end][:clicks]) do _
     if !eof(f)
-        img[] = read(f)
+        img[] = _correctimg(read(f))
     end
     #=if correctcurrent[] - slider_h[end][:value][] > step(slidersteps)/2
         @info "do"
@@ -99,13 +99,22 @@ lift(bckbutton[end][:clicks]) do _
         t1 = gettime(f)
     end
     current[] = t0
-    img[] = read(f)
+    img[] = read(f) |> _correctimg
 end
 
 # done!
-hbox(vbox(bckbutton, slider_h, fwdbutton, timestamp_h), scene)
+sc = hbox(vbox(bckbutton, slider_h, fwdbutton, timestamp_h), scene)
 
+# setup keyboard controls
+on(sc.events.keyboardbuttons) do kb
+    if ispressed(sc, Keyboard.right)
+        fwdbutton[end][:clicks][] += 1
+    elseif ispressed(sc,Keyboard.left)
+        bckbutton[end][:clicks][] += 1
+    end
+end
+
+sc
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
 # hbox(vbox(play_button, next_button, slider_h), scene)
-
