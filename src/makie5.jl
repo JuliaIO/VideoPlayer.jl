@@ -131,7 +131,7 @@ end
 
 sc
 
-Observables.off(scene.events.mousebuttons, mb)
+# Observables.off(scene.events.mousebuttons, mb)
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
 # hbox(vbox(play_button, next_button, slider_h), scene)
