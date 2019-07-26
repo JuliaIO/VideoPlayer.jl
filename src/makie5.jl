@@ -118,14 +118,12 @@ kb = on(sc.events.keyboardbuttons) do kb
     end
 end
 
-lastmpos = Node((0e0, 0e0))
+lastmpos = Node(Point2f0(0e0, 0e0))
 # Observables.off(lastmpos, scene.events.mousebuttons)
-tup2int(t) = (round(Int, t[1]), round(Int, t[2]))
+
 mb = on(scene.events.mousebuttons) do mb
     if ispressed(scene, Mouse.left)
-        t = tup2int(scene.events.mouseposition[])
-        pa = pixelarea(scene)[].widths
-        lastmpos[] = (t[1] * w / pa[1], t[2] * h / pa[2])
+        lastmpos[] = to_world(scene, scene.events.mouseposition[] |> Point2f0)
     end
 end
 
@@ -133,7 +131,7 @@ end
 
 sc
 
-# Observables.off(scene.events.mousebuttons, mb)
+Observables.off(scene.events.mousebuttons, mb)
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
 # hbox(vbox(play_button, next_button, slider_h), scene)
