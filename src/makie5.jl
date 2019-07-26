@@ -90,23 +90,27 @@ bckbutton = button!(rsc(), "<", textcolor = :white)
 lift(bckbutton[end][:clicks]) do _
     t2 = correctcurrent[]
     seek(f, max(t2 - 1, 0.0))
-    read(f)
-    t0 = 0.0
-    t1 = 0.0
-    while t1 < t2
-        t0 = gettime(f)
-        read(f)
-        t1 = gettime(f)
-    end
-    current[] = t0
+    # read(f)
+    # t0 = 0.0
+    # t1 = 0.0
+    # while t1 < t2
+    #     t0 = gettime(f)
+    #     read(f) # TODO FIXME inefficient
+    #     t1 = gettime(f)
+    # end
+    current[] = max(t2 - 1, 0.0)
     img[] = read(f) |> _correctimg
 end
 
 # done!
-sc = hbox(vbox(bckbutton, slider_h, fwdbutton, timestamp_h), scene)
+
+sc = Scene(resolution = (Int64(w), h+Int64(100)))
+sc.center=false
+
+hbox(vbox(bckbutton, slider_h, fwdbutton, timestamp_h), scene; parent=sc)
 
 # setup keyboard controls
-on(sc.events.keyboardbuttons) do kb
+kb = on(sc.events.keyboardbuttons) do kb
     if ispressed(sc, Keyboard.right)
         fwdbutton[end][:clicks][] += 1
     elseif ispressed(sc,Keyboard.left)
@@ -114,7 +118,22 @@ on(sc.events.keyboardbuttons) do kb
     end
 end
 
+lastmpos = Node((0e0, 0e0))
+# Observables.off(lastmpos, scene.events.mousebuttons)
+tup2int(t) = (round(Int, t[1]), round(Int, t[2]))
+mb = on(scene.events.mousebuttons) do mb
+    if ispressed(scene, Mouse.left)
+        t = tup2int(scene.events.mouseposition[])
+        pa = pixelarea(scene)[].widths
+        lastmpos[] = (t[1] * w / pa[1], t[2] * h / pa[2])
+    end
+end
+
+
+
 sc
+
+# Observables.off(scene.events.mousebuttons, mb)
 # played = Observables.async_latest(play, play_bubtton[end][:clicks])
 
 # hbox(vbox(play_button, next_button, slider_h), scene)
