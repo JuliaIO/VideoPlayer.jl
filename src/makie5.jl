@@ -2,9 +2,9 @@
 # using Pkg
 # Pkg.pkg"add Makie#master AbstractPlotting#master GLMakie#master VideoIO#master Observables DataStructures"
 
-using Makie, VideoIO, Dates, Observables, DataStructures
+using Makie, VideoIO, Dates, Observables
 
-include(joinpath(@__DIR__, "testvideo.jl"))
+# include(joinpath(@__DIR__, "testvideo.jl"))
 
 # testvideo = joinpath(tempdir(), "test.mp4")
 #
@@ -14,8 +14,7 @@ include(joinpath(@__DIR__, "testvideo.jl"))
 # end
 
 
-avf = VideoIO.testvideo("annie_oakley")
-testvideo = avf.io
+testvideo = joinpath(tempdir(), "testvideo.mp4")
 # f = VideoIO.openvideo(avf)
 _correctimg(img) = rotr90(img)
 
@@ -120,17 +119,15 @@ end
 
 lastmpos = Node(Point2f0(0e0, 0e0))
 
+to_screen(scene, mpos) = Point2f0(mpos) .- Point2f0(minimum(pixelarea(scene)[]))
+mouseposition(scene) = to_world(scene, to_screen(scene, events(scene).mouseposition[]))
+
 mb = on(scene.events.mousebuttons) do mb
     if ispressed(scene, Mouse.left)
-        lastmpos[] = to_world(scene, scene.events.mouseposition[] |> Point2f0)
+        lastmpos[] = mousposition(scene)
     end
 end
 
 return sc, lastmpos
 
-
-
 # Observables.off(scene.events.mousebuttons, mb)
-# played = Observables.async_latest(play, play_bubtton[end][:clicks])
-
-# hbox(vbox(play_button, next_button, slider_h), scene)
