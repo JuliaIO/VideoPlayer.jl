@@ -124,10 +124,10 @@ mouseposition(scene) = to_world(scene, to_screen(scene, events(scene).mouseposit
 
 mb = on(scene.events.mousebuttons) do mb
     if ispressed(scene, Mouse.left)
-        lastmpos[] = mousposition(scene)
+        lastmpos[] = AbstractPlottingmousposition(scene)
     end
 end
 
 return sc, lastmpos
 
-# Observables.off(scene.events.mousebuttons, mb)
+Observables.off(scene.events.mousebuttons, mb)
