@@ -60,7 +60,7 @@ Makie.update!(scene)
 
 # the slider, updating currentframe and getting its string from timestamps
 slidersteps = range(0, duration, length = 100)
-slider_h = slider!(rsc(), slidersteps, start = 0, valueprinter = _ -> "lolno", textcolor = :white)
+slider_h = slider!(rsc(), slidersteps, start = 0.0, valueprinter = _ -> "lolno", textcolor = :white)
 
 lift(slider_h[end][:value]) do t
     current[] = t
@@ -76,9 +76,10 @@ timestamp_h = text!(rsc(), lift(string, timestamp), color = :white)
 # I have to have a forward button becuase apparently the stuff in the lift gets evaluated, so to have the movie start in frame #1 I need to go forward once and the backwards...
 fwdbutton = button!(rsc(), ">", textcolor = :white)
 lift(fwdbutton[end][:clicks]) do _
-    if !eof(f)
-        img[] = _correctimg(read(f))
-    end
+    slider_h[end].value[] = slider_h[end].value[] + steplen
+    # if !eof(f)
+    #     img[] = _correctimg(read(f))
+    # end
     #=if correctcurrent[] - slider_h[end][:value][] > step(slidersteps)/2
         @info "do"
         slider_h[end][:value][] += step(slidersteps) # this doesn't work
@@ -124,7 +125,7 @@ mouseposition(scene) = to_world(scene, to_screen(scene, events(scene).mouseposit
 
 mb = on(scene.events.mousebuttons) do mb
     if ispressed(scene, Mouse.left)
-        lastmpos[] = AbstractPlottingmousposition(scene)
+        lastmpos[] = mouseposition(scene)
     end
 end
 
