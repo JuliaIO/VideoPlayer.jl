@@ -14,7 +14,7 @@ using Makie, VideoIO, Dates, Observables
 # end
 
 
-testvideo = joinpath(tempdir(), "testvideo.mp4")
+testvideo = joinpath(tempdir(), "test.mp4")
 # f = VideoIO.openvideo(avf)
 _correctimg(img) = rotr90(img)
 
