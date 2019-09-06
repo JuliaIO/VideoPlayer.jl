@@ -2,7 +2,7 @@ using Makie, VideoIO, Dates, Observables, DataStructures
 
 include("testvideo.jl")
 
-testvideo = joinpath(tempdir(), "test.mp4")
+testvideo = joinpath(tempdir(), "testvideo.mp4")
 
 # create the test video if it doesn't exist
 if !isfile(testvideo)

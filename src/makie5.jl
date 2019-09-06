@@ -14,14 +14,12 @@ using Makie, VideoIO, Dates, Observables
 # end
 
 
-testvideo = joinpath(tempdir(), "test.mp4")
+testvideo = joinpath(tempdir(), "testvideo.mp4")
 # f = VideoIO.openvideo(avf)
 _correctimg(img) = rotr90(img)
 
 # open the video
 f = VideoIO.openvideo(testvideo)
-
-f2 = VideoIO.openvideo(testvideo)
 
 duration = VideoIO.get_duration(f.avin.io)
 
@@ -64,29 +62,31 @@ slider_h = slider!(rsc(), slidersteps, start = 0.0, valueprinter = _ -> "lolno",
 
 lift(slider_h[end][:value]) do t
     current[] = t
-    if !eof(f)
-        img[] = _correctimg(read(f))
-    end
+    # if !eof(f)
+    img[] = _correctimg(read(f))
+    # end
     nothing
 end
 
 # this is for a separate display of the time stamp, due to the fact that we can not calculate with the time stamp is from the frame number (which is what the slider has)
 timestamp_h = text!(rsc(), lift(string, timestamp), color = :white)
 
+
+
 # I have to have a forward button becuase apparently the stuff in the lift gets evaluated, so to have the movie start in frame #1 I need to go forward once and the backwards...
 fwdbutton = button!(rsc(), ">", textcolor = :white)
 lift(fwdbutton[end][:clicks]) do _
-    slider_h[end].value[] = slider_h[end].value[] + steplen
-    # if !eof(f)
-    #     img[] = _correctimg(read(f))
-    # end
+    # slider_h[end].value[] = slider_h[end].value[] + steplen
+    if !eof(f)
+        img[] = _correctimg(read(f))
+    end
     #=if correctcurrent[] - slider_h[end][:value][] > step(slidersteps)/2
         @info "do"
         slider_h[end][:value][] += step(slidersteps) # this doesn't work
     end=#
     nothing
 end
-bckbutton = button!(rsc(), "<", textcolor = :white)
+#=bckbutton = button!(rsc(), "<", textcolor = :white)
 lift(bckbutton[end][:clicks]) do _
     t2 = correctcurrent[]
     seek(f, max(t2 - 1, 0.0))
@@ -100,14 +100,17 @@ lift(bckbutton[end][:clicks]) do _
     # end
     current[] = max(t2 - 1, 0.0)
     img[] = read(f) |> _correctimg
-end
+end=#
 
 # done!
 
 sc = Scene(resolution = (Int64(w), h+Int64(100)))
 sc.center=false
 
-hbox(vbox(bckbutton, slider_h, fwdbutton, timestamp_h), scene; parent=sc)
+seekstart(f)
+img[] = _correctimg(read(f))
+
+hbox(vbox(slider_h, fwdbutton, timestamp_h), scene; parent=sc)
 
 # setup keyboard controls
 kb = on(sc.events.keyboardbuttons) do kb
