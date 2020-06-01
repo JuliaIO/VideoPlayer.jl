@@ -1,4 +1,4 @@
-function createtestvideo(filename; w = 300, h = 300, fps = 25, totalseconds = 10)
+function createtestvideo(filename; w = 900, h = 300, fps = 25, totalseconds = 10)
     totalframes = fps*totalseconds
     Δt = Millisecond(Second(1))/fps
     framenumber = Observable(1)

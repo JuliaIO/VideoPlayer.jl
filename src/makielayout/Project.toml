@@ -2,5 +2,6 @@
 AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 MakieLayout = "5a521ce4-ebb9-4793-b5b7-b334dfe8393c"
+Observables = "510215fc-4207-5dde-b226-833fc4488ee2"
 VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 VideoPlayer = "4672274e-a235-11e9-2477-73f41e8acea1"
